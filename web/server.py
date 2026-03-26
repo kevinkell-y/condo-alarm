@@ -1,79 +1,23 @@
-from flask import Flask, redirect, render_template_string
+from flask import Flask, redirect, render_template
 from models import SensorEvent
 
 
-def create_app(state, notifier, siren, engine, zones):
-    app = Flask(__name__)
+def create_app(state, notifier, siren, engine, zones, logger):
+    app = Flask(__name__, template_folder="templates", static_folder="static")
 
     app.engine = engine
     app.zones = zones
-
-    HTML = """
-    <!doctype html>
-    <html>
-    <head>
-        <title>Condo Alarm</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <style>
-            body {
-                font-family: Arial, sans-serif;
-                max-width: 500px;
-                margin: 40px auto;
-                padding: 16px;
-            }
-            .card {
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 16px;
-                margin-bottom: 20px;
-            }
-            h3 {
-                margin-top: 24px;
-            }
-            .buttons a {
-                display: block;
-                text-decoration: none;
-                margin: 10px 0;
-                padding: 14px 16px;
-                border-radius: 8px;
-                background: #f3f3f3;
-                color: #111;
-                border: 1px solid #ccc;
-            }
-            .buttons a:hover {
-                background: #e9e9e9;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Condo Alarm</h1>
-
-        <div class="card">
-            <p><strong>State:</strong> {{ state }}</p>
-        </div>
-
-        <div class="buttons">
-            <a href="/arm-home">Arm Home</a>
-            <a href="/arm-away">Arm Away</a>
-            <a href="/disarm">Disarm</a>
-            <a href="/panic">Panic</a>
-        </div>
-
-        <h3>Test Triggers</h3>
-        <div class="buttons">
-            <a href="/trigger/front_door">Trigger Front Door</a>
-            <a href="/trigger/sliding_door">Trigger Sliding Door</a>
-            <a href="/trigger/kitchen_door">Trigger Kitchen Door</a>
-            <a href="/trigger/bedroom_window">Trigger Bedroom Window</a>
-            <a href="/trigger/studio_window">Trigger Studio Window</a>
-        </div>
-    </body>
-    </html>
-    """
+    app.logger_store = logger
 
     @app.route("/")
     def home():
-        return render_template_string(HTML, state=state.state.value)
+        recent_events = app.logger_store.recent(limit=10)
+        return render_template(
+            "index.html",
+            state=state.state.value,
+            siren_active=getattr(state, "siren_active", False),
+            recent_events=recent_events,
+        )
 
     @app.route("/arm-home")
     def arm_home():

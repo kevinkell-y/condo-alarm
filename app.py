@@ -32,6 +32,6 @@ def loop():
 
 threading.Thread(target=loop, daemon=True).start()
 
-app = create_app(state, notifier, siren, engine, zones)
+app = create_app(state, notifier, siren, engine, zones, logger)
 
 app.run(host="0.0.0.0", port=5000)

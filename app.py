@@ -19,7 +19,7 @@ state = StateManager(
 )
 
 logger = Logger(cfg["logging"]["file"])
-notifier = Notifier()
+notifier = Notifier(logger)
 siren = Siren(state, logger)
 zones = load_zones(cfg)
 

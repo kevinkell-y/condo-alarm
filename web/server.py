@@ -25,32 +25,37 @@ def create_app(state, notifier, siren, engine, zones, logger):
     @app.route("/arm-home")
     def arm_home():
         state.arm_home()
+        logger.log_event("arm_home", state=state.state.value)
         notifier.send("SYSTEM: Armed Home")
         return redirect("/")
 
     @app.route("/arm-away")
     def arm_away():
         state.arm_away()
+        logger.log_event("arm_away", state=state.state.value)
         notifier.send("SYSTEM: Armed Away")
         return redirect("/")
 
     @app.route("/disarm")
     def disarm():
         state.disarm()
-        siren.off()
+        logger.log_event("disarm", state=state.state.value)
+        siren.off(source="web_disarm")
         notifier.send("SYSTEM: Disarmed")
         return redirect("/")
 
     @app.route("/panic")
     def panic():
         state.trigger_alarm()
-        siren.on()
+        logger.log_event("panic", state=state.state.value)
+        siren.on(source="web_panic")
         notifier.send("PANIC: Alarm manually triggered")
         return redirect("/")
 
     @app.route("/trigger/<zone_id>")
     def trigger(zone_id):
         if zone_id not in app.zones:
+            logger.log_event("invalid_zone_trigger", zone_id=zone_id, level="WARNING")
             return "Invalid zone", 404
 
         zone = app.zones[zone_id]
@@ -63,23 +68,34 @@ def create_app(state, notifier, siren, engine, zones, logger):
 
         app.engine.handle(event)
         return redirect("/")
-    
+
     @app.route("/silence")
     def silence():
         state.silence()
-        siren.off()
+        logger.log_event("silence_siren", state=state.state.value)
+        siren.off(source="web_silence")
         notifier.send("SYSTEM: Siren silenced")
         return redirect("/")
 
     @app.route("/mute")
     def mute():
         state.mute()
+        logger.log_event(
+            "mute",
+            muted=state.siren_muted,
+            volume=state.siren_volume,
+        )
         notifier.send("SYSTEM: Siren muted")
         return redirect("/")
 
     @app.route("/unmute")
     def unmute():
         state.unmute()
+        logger.log_event(
+            "unmute",
+            muted=state.siren_muted,
+            volume=state.siren_volume,
+        )
         notifier.send("SYSTEM: Siren unmuted")
         return redirect("/")
 
@@ -88,7 +104,14 @@ def create_app(state, notifier, siren, engine, zones, logger):
         level = level.upper()
         if level in ["LOW", "MEDIUM", "HIGH"]:
             state.set_volume(level)
+            logger.log_event(
+                "volume_changed",
+                volume=state.siren_volume,
+                muted=state.siren_muted,
+            )
             notifier.send(f"SYSTEM: Volume set to {level}")
+        else:
+            logger.log_event("invalid_volume", requested_level=level, level="WARNING")
         return redirect("/")
 
     return app

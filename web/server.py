@@ -19,6 +19,7 @@ def create_app(state, notifier, siren, engine, zones, logger):
             state_volume=state.siren_volume,
             state_muted=state.siren_muted,
             recent_events=recent_events,
+            zones=app.zones,
         )
 
     @app.route("/arm-home")

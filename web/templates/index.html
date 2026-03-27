@@ -1,135 +1,65 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8">
-    <title>Condo Alarm</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 700px;
-            margin: 40px auto;
-            padding: 16px;
-            line-height: 1.4;
-        }
-
-        h1 {
-            margin-bottom: 8px;
-        }
-
-        .card {
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 20px;
-        }
-
-        h3 {
-            margin-top: 24px;
-            margin-bottom: 10px;
-        }
-
-        .buttons a {
-            display: block;
-            text-decoration: none;
-            margin: 10px 0;
-            padding: 14px 16px;
-            border-radius: 8px;
-            background: #f3f3f3;
-            color: #111;
-            border: 1px solid #ccc;
-        }
-
-        .buttons a:hover {
-            background: #e9e9e9;
-        }
-
-        .event-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .event-item {
-            border-top: 1px solid #eee;
-            padding: 12px 0;
-        }
-
-        .event-item:first-child {
-            border-top: none;
-            padding-top: 0;
-        }
-
-        .event-main {
-            font-weight: bold;
-        }
-
-        .event-meta {
-            color: #666;
-            font-size: 14px;
-            margin-top: 4px;
-        }
-
-        .empty {
-            color: #666;
-        }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Condo Alarm</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <div class="page">
     <h1>Condo Alarm</h1>
 
-    <div class="card">
-        <p><strong>State:</strong> {{ state }}</p>
-        <p><strong>Siren Active:</strong> {{ siren_active }}</p>
-        <p><strong>Siren Active:</strong> {{ siren_active }}</p>
-        <p><strong>Volume:</strong> {{ state_volume }}</p>
-        <p><strong>Muted:</strong> {{ state_muted }}</p>
-    </div>
+    <section class="status-card">
+      <p><strong>State:</strong> {{ state }}</p>
+      <p><strong>Siren Active:</strong> {{ siren_active }}</p>
+      <p><strong>Volume:</strong> {{ state_volume }}</p>
+      <p><strong>Muted:</strong> {{ state_muted }}</p>
+    </section>
 
-    <h3>System Controls</h3>
-    <div class="buttons">
-        <a href="/arm-home">Arm Home</a>
-        <a href="/arm-away">Arm Away</a>
-        <a href="/disarm">Disarm</a>
-        <a href="/panic">Panic</a>
-        <a href="/silence">Silence Siren</a>
-        <a href="/mute">Mute</a>
-        <a href="/unmute">Unmute</a>
-        <a href="/volume/low">Volume: Low</a>
-        <a href="/volume/medium">Volume: Medium</a>
-        <a href="/volume/high">Volume: High</a>
-    </div>
+  <div class="control-grid">
+    <section class="card">
+      <h2>System Controls</h2>
+      <a href="/arm-home" class="btn">Arm Home</a>
+      <a href="/arm-away" class="btn">Arm Away</a>
+      <a href="/disarm" class="btn">Disarm</a>
+      <a href="/panic" class="btn">Panic</a>
+      <a href="/silence" class="btn">Silence Siren</a>
+    </section>
 
-    <h3>Test Triggers</h3>
-    <div class="buttons">
-        <a href="/trigger/front_door">Trigger Front Door</a>
-        <a href="/trigger/sliding_door">Trigger Sliding Door</a>
-        <a href="/trigger/kitchen_door">Trigger Kitchen Door</a>
-        <a href="/trigger/bedroom_window">Trigger Bedroom Window</a>
-        <a href="/trigger/studio_window">Trigger Studio Window</a>
-    </div>
+    <section class="card">
+      <h2>Volume Controls</h2>
+      <a href="/mute" class="btn">Mute</a>
+      <a href="/unmute" class="btn">Unmute</a>
+      <a href="/volume/low" class="btn">Volume: Low</a>
+      <a href="/volume/medium" class="btn">Volume: Medium</a>
+      <a href="/volume/high" class="btn">Volume: High</a>
+    </section>
+  </div>
 
-    <h3>Recent Events</h3>
-    <div class="card">
-        {% if recent_events %}
-            <ul class="event-list">
-                {% for event in recent_events %}
-                    <li class="event-item">
-                        <div class="event-main">
-                            {{ event.event }}
-                            {% if event.zone %}
-                                — {{ event.zone }}
-                            {% endif %}
-                        </div>
-                        <div class="event-meta">
-                            {{ event.time_display }}
-                        </div>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p class="empty">No events yet.</p>
-        {% endif %}
-    </div>
+    <section class="card">
+      <h2>Test Triggers</h2>
+        {% for zone_id, zone in zones.items() %}
+          <a href="/trigger/{{ zone_id }}" class="btn">Trigger {{ zone.label }}</a>
+        {% endfor %}
+    </section>
+
+    <section class="card">
+      <h2>Recent Events</h2>
+      {% if recent_events %}
+        {% for event in recent_events %}
+          <div class="event-row">
+            <div>
+              <strong>{{ event.event }}</strong>
+              {% if event.zone %} — {{ event.zone }}{% endif %}
+            </div>
+            <div class="event-time">{{ event.time_display }}</div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p>No events yet.</p>
+      {% endif %}
+    </section>
+  </div>
 </body>
 </html>

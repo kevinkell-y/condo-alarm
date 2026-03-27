@@ -1,51 +1,44 @@
 system:
   name: condo_alarm_v1
-
 states:
   default_mode: DISARMED
   entry_delay_seconds: 25
   exit_delay_seconds: 30
-
 logging:
   file: ./logs/events.jsonl
-
 notifications:
   enabled: false
-
 siren:
   mode: mock
-
 web:
   host: 0.0.0.0
   port: 5000
-
 zones:
-  - id: front_door
-    label: Front Door
-    topic: zigbee2mqtt/front_door
-    entry_delay_home: false
-    entry_delay_away: true
-
-  - id: sliding_door
-    label: Sliding Door
-    topic: zigbee2mqtt/sliding_door
-    entry_delay_home: false
-    entry_delay_away: false
-
-  - id: kitchen_door
-    label: Kitchen Door
-    topic: zigbee2mqtt/kitchen_door
-    entry_delay_home: false
-    entry_delay_away: false
-
-  - id: bedroom_window
-    label: Bedroom Window
-    topic: zigbee2mqtt/bedroom_window
-    entry_delay_home: false
-    entry_delay_away: false
-
-  - id: studio_window
-    label: Studio Window
-    topic: zigbee2mqtt/studio_window
-    entry_delay_home: false
-    entry_delay_away: false
+- id: front_door
+  label: Front Door
+  topic: zigbee2mqtt/front_door
+  entry_delay_home: false
+  entry_delay_away: true
+- id: sliding_door
+  label: Sliding Door
+  topic: zigbee2mqtt/sliding_door
+  entry_delay_home: false
+  entry_delay_away: false
+- id: kitchen_door
+  label: Kitchen Door
+  topic: zigbee2mqtt/kitchen_door
+  entry_delay_home: false
+  entry_delay_away: false
+- id: bedroom_window
+  label: Bedroom Window
+  topic: zigbee2mqtt/bedroom_window
+  entry_delay_home: false
+  entry_delay_away: false
+- id: studio_window
+  label: Studio Window
+  topic: zigbee2mqtt/studio_window
+  entry_delay_home: false
+  entry_delay_away: false
+siren_settings:
+  default_volume: LOW
+  default_muted: true

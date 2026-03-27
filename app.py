@@ -2,6 +2,7 @@ import yaml
 import time
 import threading
 
+from config_store import ConfigStore
 from state import StateManager
 from logger import Logger
 from notifier import Notifier
@@ -10,7 +11,9 @@ from zones import load_zones
 from alarm_engine import AlarmEngine
 from web.server import create_app
 
-cfg = yaml.safe_load(open("config.yaml"))
+
+config_store = ConfigStore("config.yaml")
+cfg = config_store.load()
 
 state = StateManager(
     cfg["states"]["default_mode"],
@@ -18,7 +21,20 @@ state = StateManager(
     cfg["states"]["exit_delay_seconds"]
 )
 
-logger = Logger(cfg["logging"]["file"])
+# Apply persisted siren settings
+siren_cfg = cfg.get("siren_settings", {})
+
+state.set_volume(siren_cfg.get("default_volume", "HIGH"))
+
+if siren_cfg.get("default_muted", False):
+    state.mute()
+else:
+    state.unmute()
+
+logger = Logger(
+    event_path=cfg["logging"]["file"],
+    app_log_path="./logs/condo_alarm.log"
+)
 notifier = Notifier(logger)
 siren = Siren(state, logger)
 zones = load_zones(cfg)
@@ -32,6 +48,6 @@ def loop():
 
 threading.Thread(target=loop, daemon=True).start()
 
-app = create_app(state, notifier, siren, engine, zones, logger)
+app = create_app(state, notifier, siren, engine, zones, logger, config_store)
 
 app.run(host="0.0.0.0", port=5000)

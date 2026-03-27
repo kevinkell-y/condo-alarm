@@ -2,12 +2,12 @@ from flask import Flask, redirect, render_template
 from models import SensorEvent
 
 
-def create_app(state, notifier, siren, engine, zones, logger):
+def create_app(state, notifier, siren, engine, zones, logger, config_store):
     app = Flask(__name__, template_folder="templates", static_folder="static")
-
     app.engine = engine
     app.zones = zones
     app.logger_store = logger
+    app.config_store = config_store
 
     @app.route("/")
     def home():
@@ -80,6 +80,7 @@ def create_app(state, notifier, siren, engine, zones, logger):
     @app.route("/mute")
     def mute():
         state.mute()
+        app.config_store.update_siren_settings(muted=state.siren_muted)
         logger.log_event(
             "mute",
             muted=state.siren_muted,
@@ -91,6 +92,7 @@ def create_app(state, notifier, siren, engine, zones, logger):
     @app.route("/unmute")
     def unmute():
         state.unmute()
+        app.config_store.update_siren_settings(muted=state.siren_muted)
         logger.log_event(
             "unmute",
             muted=state.siren_muted,
@@ -102,8 +104,10 @@ def create_app(state, notifier, siren, engine, zones, logger):
     @app.route("/volume/<level>")
     def volume(level):
         level = level.upper()
+
         if level in ["LOW", "MEDIUM", "HIGH"]:
             state.set_volume(level)
+            app.config_store.update_siren_settings(volume=state.siren_volume)
             logger.log_event(
                 "volume_changed",
                 volume=state.siren_volume,
@@ -112,6 +116,7 @@ def create_app(state, notifier, siren, engine, zones, logger):
             notifier.send(f"SYSTEM: Volume set to {level}")
         else:
             logger.log_event("invalid_volume", requested_level=level, level="WARNING")
+
         return redirect("/")
 
     return app

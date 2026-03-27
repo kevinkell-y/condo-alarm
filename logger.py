@@ -29,7 +29,17 @@ class Logger:
             if not line:
                 continue
             try:
-                events.append(json.loads(line))
+                event = json.loads(line)
+
+                # Convert ISO time to readable format
+                try:
+                    dt = datetime.fromisoformat(event["time"])
+                    event["time_display"] = dt.strftime("%B %d, %Y — %-I:%M:%S %p")
+                except Exception:
+                    event["time_display"] = event.get("time", "")
+
+                events.append(event)
+
             except json.JSONDecodeError:
                 continue
 

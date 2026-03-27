@@ -81,6 +81,9 @@
     <div class="card">
         <p><strong>State:</strong> {{ state }}</p>
         <p><strong>Siren Active:</strong> {{ siren_active }}</p>
+        <p><strong>Siren Active:</strong> {{ siren_active }}</p>
+        <p><strong>Volume:</strong> {{ state_volume }}</p>
+        <p><strong>Muted:</strong> {{ state_muted }}</p>
     </div>
 
     <h3>System Controls</h3>
@@ -89,6 +92,12 @@
         <a href="/arm-away">Arm Away</a>
         <a href="/disarm">Disarm</a>
         <a href="/panic">Panic</a>
+        <a href="/silence">Silence Siren</a>
+        <a href="/mute">Mute</a>
+        <a href="/unmute">Unmute</a>
+        <a href="/volume/low">Volume: Low</a>
+        <a href="/volume/medium">Volume: Medium</a>
+        <a href="/volume/high">Volume: High</a>
     </div>
 
     <h3>Test Triggers</h3>
@@ -113,13 +122,7 @@
                             {% endif %}
                         </div>
                         <div class="event-meta">
-                            time: {{ event.time }}
-                            {% if event.source_topic %}
-                                | source: {{ event.source_topic }}
-                            {% endif %}
-                            {% if event.mode %}
-                                | mode: {{ event.mode }}
-                            {% endif %}
+                            {{ event.time_display }}
                         </div>
                     </li>
                 {% endfor %}

@@ -20,7 +20,7 @@ state = StateManager(
 
 logger = Logger(cfg["logging"]["file"])
 notifier = Notifier()
-siren = Siren()
+siren = Siren(state)
 zones = load_zones(cfg)
 
 engine = AlarmEngine(state, notifier, siren, logger, zones)

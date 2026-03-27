@@ -15,7 +15,9 @@ def create_app(state, notifier, siren, engine, zones, logger):
         return render_template(
             "index.html",
             state=state.state.value,
-            siren_active=getattr(state, "siren_active", False),
+            siren_active=state.siren_active,
+            state_volume=state.siren_volume,
+            state_muted=state.siren_muted,
             recent_events=recent_events,
         )
 
@@ -59,6 +61,33 @@ def create_app(state, notifier, siren, engine, zones, logger):
         )
 
         app.engine.handle(event)
+        return redirect("/")
+    
+    @app.route("/silence")
+    def silence():
+        state.silence()
+        siren.off()
+        notifier.send("SYSTEM: Siren silenced")
+        return redirect("/")
+
+    @app.route("/mute")
+    def mute():
+        state.mute()
+        notifier.send("SYSTEM: Siren muted")
+        return redirect("/")
+
+    @app.route("/unmute")
+    def unmute():
+        state.unmute()
+        notifier.send("SYSTEM: Siren unmuted")
+        return redirect("/")
+
+    @app.route("/volume/<level>")
+    def volume(level):
+        level = level.upper()
+        if level in ["LOW", "MEDIUM", "HIGH"]:
+            state.set_volume(level)
+            notifier.send(f"SYSTEM: Volume set to {level}")
         return redirect("/")
 
     return app

@@ -10,7 +10,7 @@ from siren import Siren
 from zones import load_zones
 from alarm_engine import AlarmEngine
 from web.server import create_app
-
+from mqtt_client import start_mqtt
 
 config_store = ConfigStore("config.yaml")
 cfg = config_store.load()
@@ -40,6 +40,7 @@ siren = Siren(state, logger)
 zones = load_zones(cfg)
 
 engine = AlarmEngine(state, notifier, siren, logger, zones)
+threading.Thread(target=start_mqtt, args=(engine,), daemon=True).start()
 
 def loop():
     while True:

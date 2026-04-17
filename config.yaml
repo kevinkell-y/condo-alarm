@@ -40,5 +40,5 @@ zones:
   entry_delay_home: false
   entry_delay_away: false
 siren_settings:
-  default_volume: LOW
-  default_muted: true
+  default_volume: HIGH
+  default_muted: false

@@ -7,13 +7,28 @@ __pycache__/
 .venv/
 venv/
 
+# Build artifacts
+build/
+dist/
+*.egg-info/
+
 # Logs
 logs/
-*.jsonl
+logs/*.jsonl
+*.log
+*.pid
+
+# Env files
+.env
+
+# Testing / coverage
+.coverage
+htmlcov/
+.pytest_cache/
 
 # OS / Editor
 .DS_Store
 .vscode/
-.env
 
+# Local test scripts
 test_gpio.py

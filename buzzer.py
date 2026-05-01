@@ -1,15 +1,33 @@
 from gpiozero import PWMOutputDevice
+import time
 
-buzzer = PWMOutputDevice(18, frequency=1200, initial_value=0)
+BUZZER_PIN = 18
 
-def buzz_on(volume=0.15):
+buzzer = PWMOutputDevice(
+    BUZZER_PIN,
+    frequency=1200,
+    initial_value=0,
+)
+
+
+def buzz_on(volume=0.15, frequency=1200):
+    buzzer.frequency = frequency
     buzzer.value = volume
+
 
 def buzz_off():
     buzzer.value = 0
+    buzzer.off()
 
-def chirp():
-    buzzer.value = 0.15
-    import time
+
+def chirp(volume=0.15):
+    buzz_on(volume=volume, frequency=1200)
     time.sleep(0.15)
-    buzzer.value = 0
+    buzz_off()
+
+
+def alarm_pulse(volume=0.5):
+    buzz_on(volume=volume, frequency=1800)
+    time.sleep(0.25)
+    buzz_off()
+    time.sleep(0.15)

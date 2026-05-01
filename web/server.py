@@ -26,6 +26,7 @@ def create_app(state, notifier, siren, engine, zones, logger, config_store):
     def arm_home():
         state.arm_home()
         logger.log_event("arm_home", state=state.state.value)
+        siren.arm_home_chirp()
         notifier.send("SYSTEM: Armed Home")
         return redirect("/")
 
@@ -33,6 +34,7 @@ def create_app(state, notifier, siren, engine, zones, logger, config_store):
     def arm_away():
         state.arm_away()
         logger.log_event("arm_away", state=state.state.value)
+        siren.arm_home_chirp()
         notifier.send("SYSTEM: Armed Away")
         return redirect("/")
 
@@ -41,6 +43,7 @@ def create_app(state, notifier, siren, engine, zones, logger, config_store):
         state.disarm()
         logger.log_event("disarm", state=state.state.value)
         siren.off(source="web_disarm")
+        siren.disarm_chirp()
         notifier.send("SYSTEM: Disarmed")
         return redirect("/")
 

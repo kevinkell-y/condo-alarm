@@ -1,7 +1,7 @@
 import threading
 import time
 
-from buzzer import buzz_on, buzz_off, alarm_pulse
+from buzzer import buzz_off, chirp, double_chirp, beep, alarm_pulse
 
 
 class Siren:
@@ -12,7 +12,7 @@ class Siren:
         self._stop_event = threading.Event()
 
     def _volume_value(self):
-        volume = getattr(self.state, "siren_volume", "MEDIUM")
+        volume = getattr(self.state, "siren_volume", "MEDIUM").upper()
 
         if volume == "LOW":
             return 0.08
@@ -21,7 +21,7 @@ class Siren:
 
         return 0.35
 
-    def _run_pattern(self):
+    def _run_alarm_pattern(self):
         while not self._stop_event.is_set():
             if self.state.siren_muted or not self.state.siren_active:
                 buzz_off()
@@ -30,6 +30,19 @@ class Siren:
             alarm_pulse(volume=self._volume_value())
 
         buzz_off()
+
+    def arm_home_chirp(self):
+        double_chirp(volume=0.15)
+
+    def disarm_chirp(self):
+        chirp(volume=0.15)
+
+    def entry_delay_beep(self):
+        # One short warning beep. AlarmEngine can call this repeatedly.
+        beep(duration=0.08, volume=0.18, frequency=1100)
+
+    def entry_delay_fast_beep(self):
+        beep(duration=0.06, volume=0.22, frequency=1500)
 
     def on(self, source="system"):
         if self.state.siren_muted:
@@ -46,7 +59,7 @@ class Siren:
         self._stop_event.clear()
 
         if self._thread is None or not self._thread.is_alive():
-            self._thread = threading.Thread(target=self._run_pattern, daemon=True)
+            self._thread = threading.Thread(target=self._run_alarm_pattern, daemon=True)
             self._thread.start()
 
         self.logger.log_event(

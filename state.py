@@ -39,6 +39,13 @@ class StateManager:
     def entry_expired(self):
         return self.entry_deadline and datetime.now() >= self.entry_deadline
 
+    def entry_seconds_remaining(self):
+        if not self.entry_deadline:
+            return None
+
+        remaining = (self.entry_deadline - datetime.now()).total_seconds()
+        return max(0, int(remaining))
+        
     # --- NEW SIREN CONTROLS ---
 
     def set_volume(self, level):

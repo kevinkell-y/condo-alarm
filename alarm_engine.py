@@ -8,6 +8,7 @@ class AlarmEngine:
         self.siren = siren
         self.logger = logger
         self.zones = zones
+        self._last_entry_beep_second = None
 
     def handle(self, event: SensorEvent):
         zone = self.zones[event.zone_id]
@@ -97,30 +98,44 @@ class AlarmEngine:
         )
 
     def tick(self):
-        if self.state.state == AlarmState.ENTRY_DELAY and self.state.entry_expired():
-            pending_label = self.state.pending_zone
+        if self.state.state == AlarmState.ENTRY_DELAY:
+            seconds_remaining = self.state.entry_seconds_remaining()
 
-            pending_zone = None
-            for zone in self.zones.values():
-                if zone.label == pending_label:
-                    pending_zone = zone
-                    break
+            if seconds_remaining is not None:
+                if seconds_remaining != self._last_entry_beep_second:
+                    self._last_entry_beep_second = seconds_remaining
 
-            self.logger.log_event(
-                "entry_delay_expired",
-                zone=pending_label,
-                source_topic="timer",
-            )
+                    if seconds_remaining <= 10:
+                        self.siren.entry_delay_fast_beep()
+                    elif seconds_remaining % 2 == 0:
+                        self.siren.entry_delay_beep()
 
-            if pending_zone is not None:
-                self.trigger(pending_zone, source_topic="timer")
-            else:
-                self.state.trigger_alarm()
-                self.siren.on(source="entry_delay_timer")
-                self.notifier.send(f"ALARM: {pending_label}")
+            if self.state.entry_expired():
+                pending_label = self.state.pending_zone
+
+                pending_zone = None
+                for zone in self.zones.values():
+                    if zone.label == pending_label:
+                        pending_zone = zone
+                        break
+
                 self.logger.log_event(
-                    "alarm_triggered",
+                    "entry_delay_expired",
                     zone=pending_label,
                     source_topic="timer",
-                    state=self.state.state.value,
                 )
+
+                if pending_zone is not None:
+                    self.trigger(pending_zone, source_topic="timer")
+                else:
+                    self.state.trigger_alarm()
+                    self.siren.on(source="entry_delay_timer")
+                    self.notifier.send(f"ALARM: {pending_label}")
+                    self.logger.log_event(
+                        "alarm_triggered",
+                        zone=pending_label,
+                        source_topic="timer",
+                        state=self.state.state.value,
+                    )
+        else:
+            self._last_entry_beep_second = None

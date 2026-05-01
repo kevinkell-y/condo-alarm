@@ -1,3 +1,6 @@
+from buzzer import buzz_on, buzz_off
+
+
 class Siren:
     def __init__(self, state, logger):
         self.state = state
@@ -11,9 +14,12 @@ class Siren:
                 volume=self.state.siren_volume,
                 muted=self.state.siren_muted,
             )
+            buzz_off()
             return
 
         self.state.siren_active = True
+        buzz_on()
+
         self.logger.log_event(
             "siren_on",
             source=source,
@@ -24,6 +30,7 @@ class Siren:
     def off(self, source="system"):
         was_active = self.state.siren_active
         self.state.siren_active = False
+        buzz_off()
 
         self.logger.log_event(
             "siren_off",

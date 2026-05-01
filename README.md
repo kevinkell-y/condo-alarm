@@ -87,7 +87,7 @@ Zigbee Sensors → Zigbee2MQTT → MQTT Broker → Python App → Web UI + Siren
 
 ```
 condo-alarm/
-├── app.py             v# Main application (Flask + MQTT loop)
+├── app.py             # Main application (Flask + MQTT loop)
 ├── mqtt_client.py     # MQTT subscription + event handling
 ├── alarm_engine.py    # Core alarm logic
 ├── buzzer.py          # GPIO buzzer control
@@ -295,8 +295,6 @@ It is:
 
 > You are building a system that protects physical space.
 
-That matters.
-
 ---
 
 ## 🧱 Final Thought
@@ -304,8 +302,6 @@ That matters.
 Most people outsource responsibility for their safety.
 
 This project does the opposite.
-
-> What happens if you build it yourself—and actually understand it?
 
 ---
 
@@ -317,8 +313,7 @@ Open-source. Use it. Break it. Improve it.
 
 ## 🤝 Contributing
 
-If you understand it well enough to improve it,
-you’re already qualified to contribute.
+If you understand it well enough to improve it, you’re already qualified to contribute.
 
 ---
 

@@ -15,11 +15,11 @@ class Siren:
         volume = getattr(self.state, "siren_volume", "MEDIUM")
 
         if volume == "LOW":
-            return 0.15
+            return 0.08
         if volume == "HIGH":
-            return 0.8
+            return 0.9
 
-        return 0.45
+        return 0.35
 
     def _run_pattern(self):
         while not self._stop_event.is_set():

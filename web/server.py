@@ -119,4 +119,16 @@ def create_app(state, notifier, siren, engine, zones, logger, config_store):
 
         return redirect("/")
 
+    @app.route("/test-buzzer")
+    def test_buzzer():
+        from buzzer import chirp
+
+        chirp(volume=0.15)
+        logger.log_event(
+            "test_buzzer",
+            volume=state.siren_volume,
+            muted=state.siren_muted,
+        )
+        return redirect("/")
+
     return app

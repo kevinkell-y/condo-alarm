@@ -1,9 +1,26 @@
+import json
 import paho.mqtt.client as mqtt
+
 from models import SensorEvent
 
 BROKER = "localhost"
 PORT = 1883
-TOPIC = "condo/#"
+TOPIC = "zigbee2mqtt/#"
+
+
+def parse_zigbee_event(payload: str):
+    try:
+        data = json.loads(payload)
+    except json.JSONDecodeError:
+        return None
+
+    if "contact" in data:
+        return "closed" if data["contact"] is True else "opened"
+
+    if "occupancy" in data:
+        return "motion" if data["occupancy"] is True else None
+
+    return None
 
 
 def on_connect(client, userdata, flags, reason_code, properties):
@@ -14,25 +31,32 @@ def on_connect(client, userdata, flags, reason_code, properties):
 
 def on_message(client, userdata, msg):
     topic = msg.topic
-    payload = msg.payload.decode()
+    payload = msg.payload.decode("utf-8")
 
     print(f"[MQTT] Message received -> {topic}: {payload}")
 
-    # Extract zone_id from topic
-    # Example: condo/front_door → front_door
     parts = topic.split("/")
     if len(parts) < 2:
         return
 
     zone_id = parts[1]
 
+    # Ignore Zigbee2MQTT bridge/system messages
+    if zone_id == "bridge":
+        return
+
+    event_type = parse_zigbee_event(payload)
+
+    if event_type is None:
+        print(f"[MQTT] Ignored payload from {topic}")
+        return
+
     event = SensorEvent(
         zone_id=zone_id,
-        event_type=payload,
-        source_topic=topic
+        event_type=event_type,
+        source_topic=topic,
     )
 
-    # Call the alarm engine
     userdata["engine"].handle(event)
 
 
@@ -41,7 +65,6 @@ def start_mqtt(engine):
     client.user_data_set({"engine": engine})
     client.on_connect = on_connect
     client.on_message = on_message
-
     client.connect(BROKER, PORT, 60)
 
     print("[MQTT] Starting loop...")
@@ -49,4 +72,4 @@ def start_mqtt(engine):
 
 
 if __name__ == "__main__":
-    start_mqtt()
+    print("Run this through app.py so the alarm engine is available.")

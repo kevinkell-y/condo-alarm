@@ -29,16 +29,6 @@ zones:
   topic: zigbee2mqtt/kitchen_door
   entry_delay_home: false
   entry_delay_away: false
-- id: bedroom_window
-  label: Bedroom Window
-  topic: zigbee2mqtt/bedroom_window
-  entry_delay_home: false
-  entry_delay_away: false
-- id: studio_window
-  label: Studio Window
-  topic: zigbee2mqtt/studio_window
-  entry_delay_home: false
-  entry_delay_away: false
 siren_settings:
   default_volume: HIGH
   default_muted: false

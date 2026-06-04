@@ -40,7 +40,7 @@ siren = Siren(state, logger)
 zones = load_zones(cfg)
 
 engine = AlarmEngine(state, notifier, siren, logger, zones)
-threading.Thread(target=start_mqtt, args=(engine,), daemon=True).start()
+threading.Thread(target=start_mqtt, args=(engine, state, zones), daemon=True).start()
 
 def loop():
     while True:

@@ -51,6 +51,12 @@ def on_message(client, userdata, msg):
         print(f"[MQTT] Ignored payload from {topic}")
         return
 
+    state = userdata["state"]
+    zones = userdata["zones"]
+
+    if zone_id in zones:
+        state.mark_sensor_seen(zone_id)
+
     event = SensorEvent(
         zone_id=zone_id,
         event_type=event_type,
@@ -60,9 +66,15 @@ def on_message(client, userdata, msg):
     userdata["engine"].handle(event)
 
 
-def start_mqtt(engine):
+def start_mqtt(engine, state, zones):
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
-    client.user_data_set({"engine": engine})
+    client.user_data_set(
+        {
+            "engine": engine,
+            "state": state,
+            "zones": zones,
+        }
+    )
     client.on_connect = on_connect
     client.on_message = on_message
     client.connect(BROKER, PORT, 60)

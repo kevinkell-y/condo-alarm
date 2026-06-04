@@ -72,3 +72,61 @@ h2 {
     grid-template-columns: 1fr;
   }
 }
+.readiness-card {
+  border-radius: 16px;
+  padding: 18px;
+  margin: 18px 0;
+  border: 3px solid #333;
+}
+
+.readiness-card h2 {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.readiness-card.ready {
+  border-color: #1f8f3a;
+  background: #e9f8ee;
+}
+
+.readiness-card.not-ready {
+  border-color: #b3261e;
+  background: #fdecea;
+}
+
+.btn.primary {
+  font-weight: bold;
+}
+
+.btn.danger {
+  font-weight: bold;
+}
+
+.btn.disabled {
+  display: inline-block;
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.sensor-row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 0;
+}
+
+.sensor-ok {
+  font-weight: bold;
+  color: #1f8f3a;
+}
+
+.sensor-missing {
+  font-weight: bold;
+  color: #b3261e;
+}
+
+.hint {
+  opacity: 0.75;
+  font-size: 0.9rem;
+}

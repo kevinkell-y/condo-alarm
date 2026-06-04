@@ -10,6 +10,25 @@
   <div class="page">
     <h1>Condo Alarm</h1>
 
+    {% if all_sensors_ready %}
+      <section class="readiness-card ready">
+        <h2>🟢 ALL SENSORS READY</h2>
+        <p>Ready to be armed.</p>
+      </section>
+    {% else %}
+      <section class="readiness-card not-ready">
+        <h2>🔴 SENSOR CHECK REQUIRED</h2>
+        <p>Press each sensor button once.</p>
+        {% if missing_sensors %}
+          <p><strong>Waiting for:</strong>
+            {% for zone_id in missing_sensors %}
+              {{ zones[zone_id].label }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
+      </section>
+    {% endif %}
+
     <section class="status-card">
       <p><strong>State:</strong> {{ state }}</p>
       <p><strong>Siren Active:</strong> {{ siren_active }}</p>
@@ -17,32 +36,54 @@
       <p><strong>Muted:</strong> {{ state_muted }}</p>
     </section>
 
-  <div class="control-grid">
-    <section class="card">
-      <h2>System Controls</h2>
-      <a href="/arm-home" class="btn">Arm Home</a>
-      <a href="/arm-away" class="btn">Arm Away</a>
-      <a href="/disarm" class="btn">Disarm</a>
-      <a href="/panic" class="btn">Panic</a>
-      <a href="/silence" class="btn">Silence Siren</a>
-      <a href="/test-buzzer" class="btn">Test Buzzer</a>
-    </section>
+    <div class="control-grid">
+      <section class="card">
+        <h2>System Controls</h2>
+
+        {% if all_sensors_ready %}
+          <a href="/arm-home" class="btn primary">Arm Home</a>
+          <a href="/arm-away" class="btn primary">Arm Away</a>
+        {% else %}
+          <span class="btn disabled">Arm Home Locked</span>
+          <span class="btn disabled">Arm Away Locked</span>
+        {% endif %}
+
+        <a href="/disarm" class="btn danger">Disarm</a>
+        <a href="/panic" class="btn danger">Panic</a>
+        <a href="/silence" class="btn">Silence Siren</a>
+        <a href="/test-buzzer" class="btn">Test Buzzer</a>
+      </section>
+
+      <section class="card">
+        <h2>Volume Controls</h2>
+        <a href="/mute" class="btn">Mute</a>
+        <a href="/unmute" class="btn">Unmute</a>
+        <a href="/volume/low" class="btn">Volume: Low</a>
+        <a href="/volume/medium" class="btn">Volume: Medium</a>
+        <a href="/volume/high" class="btn">Volume: High</a>
+      </section>
+    </div>
 
     <section class="card">
-      <h2>Volume Controls</h2>
-      <a href="/mute" class="btn">Mute</a>
-      <a href="/unmute" class="btn">Unmute</a>
-      <a href="/volume/low" class="btn">Volume: Low</a>
-      <a href="/volume/medium" class="btn">Volume: Medium</a>
-      <a href="/volume/high" class="btn">Volume: High</a>
+      <h2>Sensor Check</h2>
+      {% for zone_id, zone in zones.items() %}
+        <div class="sensor-row">
+          <strong>{{ zone.label }}</strong>
+          {% if zone_id in sensor_seen_since_startup %}
+            <span class="sensor-ok">Ready</span>
+          {% else %}
+            <span class="sensor-missing">Needs check</span>
+          {% endif %}
+        </div>
+      {% endfor %}
     </section>
-  </div>
 
     <section class="card">
       <h2>Test Triggers</h2>
-        {% for zone_id, zone in zones.items() %}
-          <a href="/trigger/{{ zone_id }}" class="btn">Trigger {{ zone.label }}</a>
-        {% endfor %}
+      <p class="hint">These test software alarm logic only. They do not count as real sensor check-ins.</p>
+      {% for zone_id, zone in zones.items() %}
+        <a href="/trigger/{{ zone_id }}" class="btn">Trigger {{ zone.label }}</a>
+      {% endfor %}
     </section>
 
     <section class="card">

@@ -1,8 +1,6 @@
-import json
-import os
 from datetime import datetime, timedelta
-
 from models import AlarmState
+
 
 class StateManager:
     def __init__(self, default_state, entry_delay, exit_delay):
@@ -13,47 +11,65 @@ class StateManager:
         self.entry_deadline = None
         self.pending_zone = None
 
-        # Siren state
         self.siren_active = False
-        self.siren_volume = "HIGH"   # LOW / MEDIUM / HIGH
+        self.siren_volume = "HIGH"
         self.siren_muted = False
 
-        # Sensor health state
-        # zone_id -> ISO timestamp of most recent live message received
-        self.sensor_health_path = "./logs/sensor_health.json"
-        self.sensor_last_seen = self._load_sensor_health()
+        # Sensor state is session-only and intentionally NOT persisted.
+        #
+        # contact=True  means CLOSED
+        # contact=False means OPEN
+        # missing key      means UNKNOWN
+        self.sensor_contact = {}
+        self.sensor_last_seen = {}
 
-    def _load_sensor_health(self):
-        if not os.path.exists(self.sensor_health_path):
-            return {}
-
-        try:
-            with open(self.sensor_health_path, "r") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-
-    def _save_sensor_health(self):
-        os.makedirs(os.path.dirname(self.sensor_health_path), exist_ok=True)
-
-        with open(self.sensor_health_path, "w") as f:
-            json.dump(self.sensor_last_seen, f, indent=2)
-
-    def mark_sensor_seen(self, zone_id):
+    def mark_sensor_seen(self, zone_id, contact=None):
         self.sensor_last_seen[zone_id] = datetime.now().isoformat()
-        self._save_sensor_health()
+
+        if contact is not None:
+            self.sensor_contact[zone_id] = contact
+
+    def update_sensor_contact(self, zone_id, contact):
+        self.sensor_last_seen[zone_id] = datetime.now().isoformat()
+        self.sensor_contact[zone_id] = contact
 
     def sensor_has_checked_in(self, zone_id):
         return zone_id in self.sensor_last_seen
 
+    def sensor_is_closed(self, zone_id):
+        return self.sensor_contact.get(zone_id) is True
+
+    def sensor_is_open(self, zone_id):
+        return self.sensor_contact.get(zone_id) is False
+
+    def sensor_is_unknown(self, zone_id):
+        return zone_id not in self.sensor_contact
+
     def all_sensors_ready(self, zones):
-        return all(self.sensor_has_checked_in(zone_id) for zone_id in zones.keys())
+        return all(
+            self.sensor_is_closed(zone_id)
+            for zone_id in zones.keys()
+        )
 
     def missing_sensors(self, zones):
         return [
             zone_id
             for zone_id in zones.keys()
-            if not self.sensor_has_checked_in(zone_id)
+            if self.sensor_is_unknown(zone_id)
+        ]
+
+    def open_sensors(self, zones):
+        return [
+            zone_id
+            for zone_id in zones.keys()
+            if self.sensor_is_open(zone_id)
+        ]
+
+    def not_ready_sensors(self, zones):
+        return [
+            zone_id
+            for zone_id in zones.keys()
+            if not self.sensor_is_closed(zone_id)
         ]
 
     def arm_home(self):
@@ -75,6 +91,7 @@ class StateManager:
 
     def trigger_alarm(self):
         self.state = AlarmState.ALARM_TRIGGERED
+        self.siren_active = True
 
     def entry_expired(self):
         return self.entry_deadline and datetime.now() >= self.entry_deadline

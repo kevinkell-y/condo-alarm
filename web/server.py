@@ -47,6 +47,8 @@ def create_app(state, notifier, siren, engine, zones, logger, config_store):
         recent_events = app.logger_store.recent(limit=10)
         all_sensors_ready = state.all_sensors_ready(app.zones)
         missing_sensors = state.missing_sensors(app.zones)
+        open_sensors = state.open_sensors(app.zones)
+        not_ready_sensors = state.not_ready_sensors(app.zones)
 
         return render_template(
             "index.html",
@@ -59,6 +61,9 @@ def create_app(state, notifier, siren, engine, zones, logger, config_store):
             all_sensors_ready=all_sensors_ready,
             missing_sensors=missing_sensors,
             sensor_seen_since_startup=state.sensor_last_seen,
+            open_sensors=open_sensors,
+            not_ready_sensors=not_ready_sensors,
+            sensor_contact=state.sensor_contact,
         )
 
     @app.route("/arm-home")

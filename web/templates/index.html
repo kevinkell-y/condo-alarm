@@ -10,17 +10,51 @@
   <div class="page">
     <h1>Condo Alarm</h1>
 
-    {% if all_sensors_ready %}
+    {% if state == "ARMED_HOME" %}
       <section class="readiness-card ready">
-        <h2>🟢 ALL SENSORS READY</h2>
+        <h2>🛡️ ARMED HOME</h2>
+        <p>System is armed.</p>
+      </section>
+
+    {% elif state == "ARMED_AWAY" %}
+      <section class="readiness-card ready">
+        <h2>🛡️ ARMED AWAY</h2>
+        <p>System is armed.</p>
+      </section>
+
+    {% elif state == "ENTRY_DELAY" %}
+      <section class="readiness-card not-ready">
+        <h2>⏳ ENTRY DELAY</h2>
+        <p>Disarm before countdown expires.</p>
+      </section>
+
+    {% elif state == "ALARM_TRIGGERED" %}
+      <section class="readiness-card not-ready">
+        <h2>🚨 ALARM TRIGGERED</h2>
+        <p>Siren active.</p>
+      </section>
+
+    {% elif all_sensors_ready %}
+      <section class="readiness-card ready">
+        <h2>🟢 ALL SENSORS CLOSED</h2>
         <p>Ready to be armed.</p>
       </section>
+
     {% else %}
       <section class="readiness-card not-ready">
-        <h2>🔴 SENSOR CHECK REQUIRED</h2>
-        <p>Press each sensor button once.</p>
+        <h2>🔴 NOT READY TO ARM</h2>
+        <p>One or more sensors are open or unknown.</p>
+
+        {% if open_sensors %}
+          <p><strong>Open:</strong>
+            {% for zone_id in open_sensors %}
+              {{ zones[zone_id].label }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+          </p>
+        {% endif %}
+
         {% if missing_sensors %}
-          <p><strong>Waiting for:</strong>
+          <p><strong>Unknown / waiting for contact report:</strong>
             {% for zone_id in missing_sensors %}
               {{ zones[zone_id].label }}{% if not loop.last %}, {% endif %}
             {% endfor %}
@@ -40,10 +74,10 @@
       <section class="card">
         <h2>System Controls</h2>
 
-        {% if all_sensors_ready %}
+        {% if state == "DISARMED" and all_sensors_ready %}
           <a href="/arm-home" class="btn primary">Arm Home</a>
           <a href="/arm-away" class="btn primary">Arm Away</a>
-        {% else %}
+        {% elif state == "DISARMED" %}
           <span class="btn disabled">Arm Home Locked</span>
           <span class="btn disabled">Arm Away Locked</span>
         {% endif %}
@@ -65,14 +99,18 @@
     </div>
 
     <section class="card">
-      <h2>Sensor Check</h2>
+      <h2>Sensor Status</h2>
+
       {% for zone_id, zone in zones.items() %}
         <div class="sensor-row">
           <strong>{{ zone.label }}</strong>
-          {% if zone_id in sensor_seen_since_startup %}
-            <span class="sensor-ok">Ready</span>
+
+          {% if sensor_contact.get(zone_id) is sameas true %}
+            <span class="sensor-ok">Closed</span>
+          {% elif sensor_contact.get(zone_id) is sameas false %}
+            <span class="sensor-missing">Open</span>
           {% else %}
-            <span class="sensor-missing">Needs check</span>
+            <span class="sensor-missing">Unknown</span>
           {% endif %}
         </div>
       {% endfor %}
@@ -80,28 +118,41 @@
 
     <section class="card">
       <h2>Test Triggers</h2>
-      <p class="hint">These test software alarm logic only. They do not count as real sensor check-ins.</p>
+      <p class="hint">
+        These test software alarm logic only.
+        They do not count as real sensor check-ins.
+      </p>
+
       {% for zone_id, zone in zones.items() %}
-        <a href="/trigger/{{ zone_id }}" class="btn">Trigger {{ zone.label }}</a>
+        <a href="/trigger/{{ zone_id }}" class="btn">
+          Trigger {{ zone.label }}
+        </a>
       {% endfor %}
     </section>
 
     <section class="card">
       <h2>Recent Events</h2>
+
       {% if recent_events %}
         {% for event in recent_events %}
           <div class="event-row">
             <div>
               <strong>{{ event.event }}</strong>
-              {% if event.zone %} — {{ event.zone }}{% endif %}
+              {% if event.zone %}
+                — {{ event.zone }}
+              {% endif %}
             </div>
-            <div class="event-time">{{ event.time_display }}</div>
+
+            <div class="event-time">
+              {{ event.time_display }}
+            </div>
           </div>
         {% endfor %}
       {% else %}
         <p>No events yet.</p>
       {% endif %}
     </section>
+
   </div>
 </body>
 </html>
